@@ -1,0 +1,9 @@
+vizinho mais próximo:
+ 16,  0,  0
+  0, 15,  1
+  0,  2, 11
+
+centroides:
+ 16,  0,  0
+  0, 13,  3
+  0,  1, 12

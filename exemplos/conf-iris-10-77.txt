@@ -1,0 +1,9 @@
+vizinho mais próximo:
+  3,  0,  0
+  0,  6,  0
+  0,  0,  6
+
+centroides:
+  3,  0,  0
+  0,  5,  1
+  0,  1,  5

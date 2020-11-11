@@ -1,0 +1,6 @@
+Forneca o nome do arquivo de entrada: iris.csv
+Forneca o nome do arquivo de saida: conf-iris-10-77.txt
+Forneca o percentual de exemplos de teste: 10
+Forneca o valor da semente para geracao randomizada: 77
+Acuracia(vizinho): 100.00%
+Acuracia(centroide): 86.67%
