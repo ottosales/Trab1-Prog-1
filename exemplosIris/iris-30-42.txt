@@ -1,0 +1,19 @@
+Forneca o nome do arquivo de entrada: iris.csv
+Forneca o nome do arquivo de saida: conf-iris-30-42.txt
+Forneca o percentual de exemplos de teste: 30
+Forneca o valor da semente para geracao randomizada: 42
+
+Indices de exemplos de teste: [48,95,15,145,23,139,50,133,142,41,94,92,91,127,66,9,75,122,24,74,31,34,72,107,125,119,38,3,97,86,80,77,65,58,131,135,132,105,29,13,27,18,44,28,98] 
+
+Acuracia(vizinho): 93.33%
+Acuracia(centroide): 91.11%
+
+vizinho mais próximo:
+ 16,  0,  0
+  0, 15,  2
+  0,  1, 11
+
+centroides:
+ 16,  0,  0
+  0, 13,  1
+  0,  3, 12

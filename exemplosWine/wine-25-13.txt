@@ -1,0 +1,19 @@
+Forneca o nome do arquivo de entrada: wine.csv
+Forneca o nome do arquivo de saida: conf-wine-25-13.txt
+Forneca o percentual de exemplos de teste: 25
+Forneca o valor da semente para geracao randomizada: 13
+
+Indices de exemplos de teste: [63,1,90,91,150,60,144,5,164,7,11,16,176,22,143,4,21,152,155,58,51,8,30,18,20,15,12,149,52,131,86,65,168,145,72,102,67,93,59,165,53,138,68,139]
+
+Acuracia(vizinho): 77.27%
+Acuracia(centroide): 72.73%
+
+vizinho mais próximo:
+ 16,  2,  2
+  1, 10,  4
+  1,  0,  8
+
+centroides:
+ 15,  0,  0
+  0,  9,  6
+  3,  3,  8
