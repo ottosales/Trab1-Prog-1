@@ -6,20 +6,19 @@ import Data.List as List (sort)
 import Data.Text as Text (Text, pack, unpack, splitOn)
 -- Input Reading
 
-type Coords = Double
-type Class = String
-type DataTuple = ([Coords], Class)
+type DataTuple = ([Double], String)
 
 main = do
     dataList <- readInput
     -- outputFileName <- readOutput
     percTest <- readPercentual
-    let testSize = calcTestSize (read percTest) (length dataList)
     seed <- readSeed
-    randomList <- genRandom (read seed) testSize (length dataList)
-    print randomList
-    let xs = sort randomList
-    print xs
+    let testSize = calcTestSize (read percTest) (length dataList)
+    let randomList = genRandom (read seed) testSize (length dataList)
+    let trainingGroup = getTrainingList dataList randomList
+    let testGroup = getTestList dataList randomList
+    print trainingGroup
+    print testGroup
 
     putStrLn "all finished!"
 
@@ -61,25 +60,27 @@ readSeed = do
     putStrLn "Please inform the seed for the random program:"
     getLine
 
-tem :: Eq a => a -> [a] -> Bool
-tem _ [] = False
-tem y (x:xs)
-   | x == y = True
-   | otherwise = tem y xs
-
 removeDup :: Eq a => [a] -> [a]
 removeDup l = removeD l []
    where
      removeD [] _ = []
      removeD (x:xs) ls
-        | tem x ls = removeD xs ls
+        | x `elem` ls = removeD xs ls
         | otherwise = x: removeD xs (x:ls)
 
-genRandom seed testSize limit= do 
-    let g = mkStdGen seed
-    let aleatorios = take testSize (removeDup (randomRs (0,limit) g :: [Int]))
-    return aleatorios
+genRandom :: Int -> Int -> Int -> [Int]
+genRandom seed testSize limit = take testSize (removeDup (randomRs (0,limit) $ mkStdGen seed:: [Int]))
 
-
+calcTestSize :: Integral a => a -> a -> a
 calcTestSize percTest testSize = (percTest * testSize) `div` 100
 
+getTrainingList :: [a] -> [Int] -> [a]
+getTrainingList dataList randomList = [dataList !! x | x <- randomList]
+
+getTestList :: [a] -> [Int] -> [a]
+getTestList dataList randomList = [dataList !! x | x <- [0..length dataList - 1], x `notElem` randomList]
+
+
+
+calcDist :: ([Double], String) -> ([Double], String) -> Double
+calcDist (xs, _) (ys, _) = sqrt . sum $ [uncurry (-) z ** 2 | z <- zip xs ys]
