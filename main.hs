@@ -17,8 +17,9 @@ main = do
     let randomList = genRandom (read seed) testSize (length dataList)
     let trainingGroup = getTrainingList dataList randomList
     let testGroup = getTestList dataList randomList
-    print trainingGroup
-    print testGroup
+
+    let centroids = calcAllCentroids dataList
+    print centroids
 
     putStrLn "all finished!"
 
@@ -80,7 +81,19 @@ getTrainingList dataList randomList = [dataList !! x | x <- randomList]
 getTestList :: [a] -> [Int] -> [a]
 getTestList dataList randomList = [dataList !! x | x <- [0..length dataList - 1], x `notElem` randomList]
 
+getClassList :: Eq a2 => [(a1, a2)] -> [a2]
+getClassList dataList = removeDup [snd x | x <- dataList]
 
+getAllElementsInClass :: [([Double], String)] -> String -> [[Double]]
+getAllElementsInClass dataList className = [ fst x | x <- dataList, snd x == className] 
+
+calcCentroid :: [[Double]] -> [Double]
+calcCentroid [] = []
+calcCentroid [element] = element
+calcCentroid (element : elements) = zipWith (+) element (calcCentroid elements)
+
+calcAllCentroids :: [([Double], String)] -> [([Double], String)]
+calcAllCentroids dataList = [makeTuple (map (/ fromIntegral (length (getAllElementsInClass dataList x))) (calcCentroid (getAllElementsInClass dataList x))) x | x <- getClassList dataList]
 
 calcDist :: ([Double], String) -> ([Double], String) -> Double
 calcDist (xs, _) (ys, _) = sqrt . sum $ [uncurry (-) z ** 2 | z <- zip xs ys]
