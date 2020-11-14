@@ -1,9 +1,10 @@
 import System.Random
 import System.IO
 import Data.Char
-import Data.List as List (sort)
-
+import Data.List as List (sort, elemIndex)
+import Data.Maybe as Maybe (fromMaybe)
 import Data.Text as Text (Text, pack, unpack, splitOn)
+import Text.Printf (printf)
 -- Input Reading
 
 type DataTuple = ([Double], String)
@@ -15,13 +16,22 @@ main = do
     seed <- readSeed
     let testSize = calcTestSize (read percTest) (length dataList)
     let randomList = genRandom (read seed) testSize (length dataList)
-    let trainingGroup = getTrainingList dataList randomList
-    let testGroup = getTestList dataList randomList
+    let testGroup = getTrainingList dataList randomList
+    let trainingGroup = getTestList dataList randomList
+    let centroids = calcAllCentroids trainingGroup
 
-    let centroids = calcAllCentroids dataList
-    print centroids
+    let classy = classifyAllItems trainingGroup testGroup
+    let centry = classifyAllItems centroids testGroup
+    
+    printf "Acuracia(vizinho): %.2f%%\n" $ calcAccuracy (rightCount testGroup classy 0) (length testGroup)
+    printf "Acuracia(centroide): %.2f%%\n" $calcAccuracy (rightCount testGroup centry 0) (length testGroup)
 
-    putStrLn "all finished!"
+
+plsWork :: [([Double], String)] -> [([Double], String)] -> [([Double], String)]
+plsWork trainingGroup testGroup = sort (trainingGroup ++ testGroup)
+
+makeReadable :: [([Double], String)] -> String
+makeReadable xs = unlines $ [show x | x <- xs]
 
 readInput :: IO [([Double], String)]
 readInput = do
@@ -70,15 +80,15 @@ removeDup l = removeD l []
         | otherwise = x: removeD xs (x:ls)
 
 genRandom :: Int -> Int -> Int -> [Int]
-genRandom seed testSize limit = take testSize (removeDup (randomRs (0,limit) $ mkStdGen seed:: [Int]))
+genRandom seed testSize limit = take testSize (removeDup (randomRs (0,limit-1) $ mkStdGen seed:: [Int]))
 
 calcTestSize :: Integral a => a -> a -> a
 calcTestSize percTest testSize = (percTest * testSize) `div` 100
 
-getTrainingList :: [a] -> [Int] -> [a]
+getTrainingList :: [([Double], String)] -> [Int] -> [([Double], String)]
 getTrainingList dataList randomList = [dataList !! x | x <- randomList]
 
-getTestList :: [a] -> [Int] -> [a]
+getTestList :: [([Double], String)] -> [Int] -> [([Double], String)]
 getTestList dataList randomList = [dataList !! x | x <- [0..length dataList - 1], x `notElem` randomList]
 
 getClassList :: Eq a2 => [(a1, a2)] -> [a2]
@@ -97,3 +107,24 @@ calcAllCentroids dataList = [makeTuple (map (/ fromIntegral (length (getAllEleme
 
 calcDist :: ([Double], String) -> ([Double], String) -> Double
 calcDist (xs, _) (ys, _) = sqrt . sum $ [uncurry (-) z ** 2 | z <- zip xs ys]
+
+showClassPoint :: [([Double], String)] -> ([Double], String) -> [Double]
+showClassPoint trainingGroup point = sort [calcDist x point | x <- trainingGroup]
+
+guessClassPoint :: [([Double], String)] -> ([Double], String) -> ([Double], String)
+guessClassPoint trainingGroup point = makeTuple (fst point) (snd (trainingGroup !! Maybe.fromMaybe (-1) (elemIndex (minimum list) list))) 
+    where
+        list = [calcDist x point | x <- trainingGroup]
+
+classifyAllItems :: [([Double], String)] -> [([Double], String)] -> [([Double], String)]
+classifyAllItems trainingGroup testGroup = [ guessClassPoint trainingGroup x | x <- testGroup]
+
+rightCount :: [([Double], String)] -> [([Double], String)] -> Int -> Int
+rightCount [] [] value = value
+rightCount (x:xs) (y:ys) value =
+    if snd x == snd y then
+        rightCount xs ys (succ value)
+        else rightCount xs ys value
+
+calcAccuracy :: Int -> Int -> Double
+calcAccuracy right total = fromIntegral (100 * right) / fromIntegral total
