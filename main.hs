@@ -16,8 +16,8 @@ main = do
     seed <- readSeed
     let testSize = calcTestSize (read percTest) (length dataList)
     let randomList = genRandom (read seed) testSize (length dataList)
-    let testGroup = getTrainingList dataList randomList
-    let trainingGroup = getTestList dataList randomList
+    let trainingGroup = getTrainingList dataList randomList
+    let testGroup = getTestList dataList randomList
     let centroids = calcAllCentroids trainingGroup
 
     let classy = classifyAllItems trainingGroup testGroup
@@ -85,11 +85,11 @@ genRandom seed testSize limit = take testSize (removeDup (randomRs (0,limit-1) $
 calcTestSize :: Integral a => a -> a -> a
 calcTestSize percTest testSize = (percTest * testSize) `div` 100
 
-getTrainingList :: [([Double], String)] -> [Int] -> [([Double], String)]
-getTrainingList dataList randomList = [dataList !! x | x <- randomList]
-
 getTestList :: [([Double], String)] -> [Int] -> [([Double], String)]
-getTestList dataList randomList = [dataList !! x | x <- [0..length dataList - 1], x `notElem` randomList]
+getTestList dataList randomList = [dataList !! x | x <- randomList]
+
+getTrainingList :: [([Double], String)] -> [Int] -> [([Double], String)]
+getTrainingList dataList randomList = [dataList !! x | x <- [0..length dataList - 1], x `notElem` randomList]
 
 getClassList :: Eq a2 => [(a1, a2)] -> [a2]
 getClassList dataList = removeDup [snd x | x <- dataList]
