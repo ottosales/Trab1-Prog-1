@@ -1,6 +1,4 @@
 import System.Random
-import System.IO
-import Data.Char
 import Data.List as List (sort, elemIndex)
 import Data.Maybe as Maybe (fromMaybe)
 import Data.Text as Text (Text, pack, unpack, splitOn)
@@ -11,7 +9,7 @@ type DataTuple = ([Double], String)
 
 main = do
     dataList <- readInput
-    -- outputFileName <- readOutput
+    outputFileName <- readOutput
     percTest <- readPercentual
     seed <- readSeed
     let testSize = calcTestSize (read percTest) (length dataList)
@@ -20,17 +18,16 @@ main = do
     let testGroup = getTestList dataList randomList
     let centroids = calcAllCentroids trainingGroup
 
-    let classy = classifyAllItems trainingGroup testGroup
-    let centry = classifyAllItems centroids testGroup
+    let neighbour = classifyAllItems trainingGroup testGroup
+    let centroid = classifyAllItems centroids testGroup
     
-    printf "Acuracia(vizinho): %.2f%%\n" $ calcAccuracy (rightCount testGroup classy 0) (length testGroup)
-    printf "Acuracia(centroide): %.2f%%\n" $calcAccuracy (rightCount testGroup centry 0) (length testGroup)
+    printf "Acuracia(vizinho): %.2f%%\n" $ calcAccuracy (rightCount testGroup neighbour 0) (length testGroup)
+    printf "Acuracia(centroide): %.2f%%\n" $calcAccuracy (rightCount testGroup centroid 0) (length testGroup)
+    putStrLn $ makeReadable $ confusionTable neighbour testGroup (getClassList testGroup)
+    putStr $ makeReadable $ confusionTable centroid testGroup (getClassList testGroup)
 
 
-plsWork :: [([Double], String)] -> [([Double], String)] -> [([Double], String)]
-plsWork trainingGroup testGroup = sort (trainingGroup ++ testGroup)
-
-makeReadable :: [([Double], String)] -> String
+makeReadable :: [[Int]] -> String
 makeReadable xs = unlines $ [show x | x <- xs]
 
 readInput :: IO [([Double], String)]
@@ -91,8 +88,9 @@ getTestList dataList randomList = [dataList !! x | x <- randomList]
 getTrainingList :: [([Double], String)] -> [Int] -> [([Double], String)]
 getTrainingList dataList randomList = [dataList !! x | x <- [0..length dataList - 1], x `notElem` randomList]
 
-getClassList :: Eq a2 => [(a1, a2)] -> [a2]
-getClassList dataList = removeDup [snd x | x <- dataList]
+
+getClassList :: Ord a1 => [(a2, a1)] -> [a1]
+getClassList dataList = sort $ removeDup [snd x | x <- dataList]
 
 getAllElementsInClass :: [([Double], String)] -> String -> [[Double]]
 getAllElementsInClass dataList className = [ fst x | x <- dataList, snd x == className] 
@@ -128,3 +126,13 @@ rightCount (x:xs) (y:ys) value =
 
 calcAccuracy :: Int -> Int -> Double
 calcAccuracy right total = fromIntegral (100 * right) / fromIntegral total
+
+calcGuesses :: [([Double], String)] -> [([Double], String)] -> String -> String -> Int -> Int
+calcGuesses [] [] _ _ value = value
+calcGuesses  (x:xs) (y:ys) guessedClass rightClass value =
+    if snd x == guessedClass && snd y == rightClass then
+        calcGuesses xs ys guessedClass rightClass (succ value)
+        else calcGuesses xs ys guessedClass rightClass value
+
+confusionTable :: [([Double], String)] -> [([Double], String)] -> [String] -> [[Int]]
+confusionTable guessedGroup testGroup classes = [[ calcGuesses guessedGroup testGroup x y 0 | y <- classes ] | x <- classes]
