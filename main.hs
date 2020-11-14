@@ -1,3 +1,4 @@
+import System.IO
 import System.Random
 import Data.List as List (sort, elemIndex)
 import Data.Maybe as Maybe (fromMaybe)
@@ -23,16 +24,19 @@ main = do
     
     printf "Acuracia(vizinho): %.2f%%\n" $ calcAccuracy (rightCount testGroup neighbour 0) (length testGroup)
     printf "Acuracia(centroide): %.2f%%\n" $calcAccuracy (rightCount testGroup centroid 0) (length testGroup)
-    putStrLn $ makeReadable $ confusionTable neighbour testGroup (getClassList testGroup)
-    putStr $ makeReadable $ confusionTable centroid testGroup (getClassList testGroup)
-
-
-makeReadable :: [[Int]] -> String
-makeReadable xs = unlines $ [show x | x <- xs]
+    
+    let confTableNeighbour = confusionTable neighbour testGroup (getClassList testGroup)
+    let confTableCentroid = confusionTable centroid testGroup (getClassList testGroup)
+    
+    writeFile outputFileName ""
+    appendFile outputFileName "vizinho mais próximo:\n"
+    appendFile outputFileName $ printConfTable confTableNeighbour
+    appendFile outputFileName "\ncentroides:\n"
+    appendFile outputFileName $ printConfTable confTableCentroid
 
 readInput :: IO [([Double], String)]
 readInput = do
-    putStrLn "Please inform the input file name:"
+    putStrLn "Forneca o nome do arquivo de entrada:"
     fileName <- getLine
     handle <- readFile fileName
     return [lineToData handle | handle <- lines handle]
@@ -55,17 +59,17 @@ makeTuple x y = (x, y)
 
 readOutput :: IO String
 readOutput = do
-    putStrLn "Please inform the output file name:"
+    putStrLn "Forneca o nome do arquivo de saida:"
     getLine
 
 readPercentual :: IO String
 readPercentual = do
-    putStrLn "Please inform the examples percentual:"
+    putStrLn "Forneca o percentual de exemplos de teste:"
     getLine
 
 readSeed :: IO String
 readSeed = do
-    putStrLn "Please inform the seed for the random program:"
+    putStrLn "Forneca o valor da semente para geracao randomizada:"
     getLine
 
 removeDup :: Eq a => [a] -> [a]
@@ -136,3 +140,19 @@ calcGuesses  (x:xs) (y:ys) guessedClass rightClass value =
 
 confusionTable :: [([Double], String)] -> [([Double], String)] -> [String] -> [[Int]]
 confusionTable guessedGroup testGroup classes = [[ calcGuesses guessedGroup testGroup x y 0 | y <- classes ] | x <- classes]
+
+makeReadable :: [[Int]] -> String
+makeReadable xs = unlines $ [show x | x <- xs]
+
+fixNumberPosition :: Int -> String
+fixNumberPosition x
+    | x > 9    = show x
+    | otherwise = " " ++ show x
+
+createConfTableLine :: [String] -> [Char] -> [Char]
+createConfTableLine [] line = line
+createConfTableLine [x] _ = x
+createConfTableLine (x:xs) line = line ++ x ++ ", " ++ createConfTableLine xs line
+
+printConfTable :: [[Int]] -> String
+printConfTable confTable = unlines [" " ++ createConfTableLine [fixNumberPosition x | x <- y] "" | y <- confTable]
